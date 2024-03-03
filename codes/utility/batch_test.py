@@ -10,6 +10,8 @@ from tqdm import tqdm
 from utility.load_data import Data
 from utility.parser import parse_args
 
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
 cores = multiprocessing.cpu_count() // 5
 
 args = parse_args()

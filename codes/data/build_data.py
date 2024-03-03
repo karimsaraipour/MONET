@@ -13,7 +13,6 @@ from sentence_transformers import SentenceTransformer
 def dataset_merge_and_split(path, core):
     if not os.path.exists(folder + "%d-core" % core):
         os.makedirs(folder + "%d-core" % core)
-
     df = pd.read_csv(path + "/train.csv", index_col=None, usecols=None)
     # Construct matrix
     ui = defaultdict(list)

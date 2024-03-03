@@ -6,6 +6,7 @@ from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.utils.num_nodes import maybe_num_nodes
 from torch_scatter import scatter_add
 
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 def normalize_laplacian(edge_index, edge_weight):
     num_nodes = maybe_num_nodes(edge_index)
@@ -84,7 +85,7 @@ class MeGCN(nn.Module):
         self.n_layers = n_layers
         self.has_norm = has_norm
         self.feat_embed_dim = feat_embed_dim
-        self.nonzero_idx = torch.tensor(nonzero_idx).cuda().long().T
+        self.nonzero_idx = torch.tensor(nonzero_idx).to(device).long().T
         self.alpha = alpha
         self.agg = agg
         self.cf = cf
@@ -324,8 +325,8 @@ class MONET(nn.Module):
         self.alpha = alpha
         self.beta = beta
         self.agg = agg
-        self.image_feats = torch.tensor(image_feats, dtype=torch.float).cuda()
-        self.text_feats = torch.tensor(text_feats, dtype=torch.float).cuda()
+        self.image_feats = torch.tensor(image_feats, dtype=torch.float).to(device)
+        self.text_feats = torch.tensor(text_feats, dtype=torch.float).to(device)
 
         self.megcn = MeGCN(
             self.n_users,
@@ -343,23 +344,23 @@ class MONET(nn.Module):
             lightgcn,
         )
 
-        nonzero_idx = torch.tensor(self.nonzero_idx).cuda().long().T
+        nonzero_idx = torch.tensor(self.nonzero_idx).to(device).long().T
         nonzero_idx[1] = nonzero_idx[1] + self.n_users
         self.edge_index = torch.cat(
             [nonzero_idx, torch.stack([nonzero_idx[1], nonzero_idx[0]], dim=0)], dim=1
         )
-        self.edge_weight = torch.ones((self.edge_index.size(1))).cuda().view(-1, 1)
+        self.edge_weight = torch.ones((self.edge_index.size(1))).to(device).view(-1, 1)
         self.edge_weight = normalize_laplacian(self.edge_index, self.edge_weight)
 
-        nonzero_idx = torch.tensor(self.nonzero_idx).cuda().long().T
+        nonzero_idx = torch.tensor(self.nonzero_idx).to(device).long().T
         self.adj = (
             torch.sparse.FloatTensor(
                 nonzero_idx,
-                torch.ones((nonzero_idx.size(1))).cuda(),
+                torch.ones((nonzero_idx.size(1))).to(device),
                 (self.n_users, self.n_items),
             )
             .to_dense()
-            .cuda()
+            .to(device)
         )
 
     def forward(self, _eval=False):

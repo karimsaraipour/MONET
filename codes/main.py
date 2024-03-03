@@ -10,7 +10,7 @@ from Models import MONET
 from utility.batch_test import data_generator, test_torch
 from utility.parser import parse_args
 
-
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 class Trainer(object):
     def __init__(self, data_config, args):
         # argument settings
@@ -58,7 +58,7 @@ class Trainer(object):
             self.lightgcn,
         )
 
-        self.model = self.model.cuda()
+        self.model = self.model.to(device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         self.lr_scheduler = self.set_lr_scheduler()
 
@@ -83,15 +83,15 @@ class Trainer(object):
         return result
 
     def train(self):
-        nonzero_idx = torch.tensor(self.nonzero_idx).cuda().long().T
+        nonzero_idx = torch.tensor(self.nonzero_idx).to(device).long().T
         self.adj = (
             torch.sparse.FloatTensor(
                 nonzero_idx,
-                torch.ones((nonzero_idx.size(1))).cuda(),
+                torch.ones((nonzero_idx.size(1))).to(device),
                 (self.n_users, self.n_items),
             )
             .to_dense()
-            .cuda()
+            .to(device)
         )
         stopping_step = 0
 
@@ -212,7 +212,7 @@ class Trainer(object):
                 map_location=torch.device("cpu"),
             )[self.model_name]
         )
-        self.model.cuda()
+        self.model.to(device)
         test_ret = self.test(users_to_test, is_val=False)
         print("Final ", test_ret)
 
