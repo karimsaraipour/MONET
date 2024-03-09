@@ -372,7 +372,7 @@ class MONET(nn.Module):
 
         return user, items
 
-    def bpr_loss(self, user_emb, item_emb, users, pos_items, neg_items, target_aware):
+    def cpr_loss(self, user_emb, item_emb, users, pos_items, neg_items, target_aware, batch_size):
         current_user_emb = user_emb[users]
         pos_item_emb = item_emb[pos_items]
         neg_item_emb = item_emb[neg_items]
@@ -412,8 +412,13 @@ class MONET(nn.Module):
             pos_scores = torch.sum(torch.mul(current_user_emb, pos_item_emb), dim=1)
             neg_scores = torch.sum(torch.mul(current_user_emb, neg_item_emb), dim=1)
 
-        maxi = F.logsigmoid(pos_scores - neg_scores)
-        mf_loss = -torch.mean(maxi)
+
+        # maxi = F.logsigmoid(pos_scores - neg_scores)
+        # mf_loss = -torch.mean(maxi)
+
+        cpr_obj = pos_scores - neg_scores
+        cpr_obj_neg, _ = torch.topk(-cpr_obj, k=batch_size, sorted=False)
+        mf_loss = torch.mean(F.softplus(cpr_obj_neg))
 
         regularizer = (
             1.0 / 2 * (pos_item_emb**2).sum()

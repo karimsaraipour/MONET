@@ -12,7 +12,7 @@ from utility.parser import parse_args
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-cores = multiprocessing.cpu_count() // 5
+cores = 2
 
 args = parse_args()
 Ks = eval(args.Ks)

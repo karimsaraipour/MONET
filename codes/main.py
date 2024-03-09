@@ -107,8 +107,8 @@ class Trainer(object):
                 user_emb, item_emb = self.model()
                 users, pos_items, neg_items = data_generator.sample()
 
-                batch_mf_loss, batch_emb_loss, batch_reg_loss = self.model.bpr_loss(
-                    user_emb, item_emb, users, pos_items, neg_items, self.target_aware
+                batch_mf_loss, batch_emb_loss, batch_reg_loss = self.model.cpr_loss(
+                    user_emb, item_emb, users, pos_items, neg_items, self.target_aware, args.batch_size
                 )
 
                 batch_emb_loss = self.decay * batch_emb_loss
@@ -227,6 +227,7 @@ def set_seed(seed):
 if __name__ == "__main__":
     args = parse_args(True)
     set_seed(args.seed)
+    print("MY DEVICE:", device)
 
     config = dict()
     config["n_users"] = data_generator.n_users
